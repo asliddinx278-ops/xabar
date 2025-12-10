@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Admin panel</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+    body{background:#f5f5f5;padding:1rem}
+    h2{margin:0 0 .5rem}
+    table{width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+    th{background:#0088cc;color:#fff;padding:8px 12px;text-align:left;font-size:14px}
+    td{padding:8px 12px;font-size:14px;border-top:1px solid #eee}
+    tr:nth-child(even){background:#fafafa}
+    .ts{color:#666;font-size:12px}
+  </style>
+</head>
+<body>
+  <h2>Buyurtmalar</h2>
+  <table>
+    <thead>
+      <tr><th>Vaqt</th><th>Ism</th><th>Tel</th><th>Izoh</th></tr>
+    </thead>
+    <tbody id="list">
+      <tr><td colspan="4">Yuklanmoqda...</td></tr>
+    </tbody>
+  </table>
+
+  <script>
+    // localStorage da saqlaymiz
+    let orders = JSON.parse(localStorage.getItem('adminOrders') || '[]');
+
+    function render() {
+      const html = orders.map(o => `
+        <tr>
+          <td class="ts">${new Date(o.ts).toLocaleString('uz-UZ')}</td>
+          <td>${o.name}</td>
+          <td>${o.phone}</td>
+          <td>${o.comment||'-'}</td>
+        </tr>`).join('');
+      document.getElementById('list').innerHTML = html || '<tr><td colspan="4">Hozircha buyurtma yo‘q</td></tr>';
+    }
+
+    // sahifa ochilganda
+    window.addEventListener('DOMContentLoaded', () => render());
+
+    // yangi xabar kelganida (bot yuborgan web_app_data)
+    window.addEventListener('message', e => {
+      if (!e.data || !e.data.startsWith('{')) return;
+      const data = JSON.parse(e.data);
+      orders.unshift({...data, ts: new Date().toISOString()});
+      localStorage.setItem('adminOrders', JSON.stringify(orders));
+      render();
+    });
+  </script>
+</body>
+</html>
